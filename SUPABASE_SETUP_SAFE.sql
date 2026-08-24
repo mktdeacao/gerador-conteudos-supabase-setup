@@ -1,10 +1,6 @@
 -- BASE Content Studio / Gerador de Conteúdos
--- Bundle seguro para execução em banco parcialmente configurado.
--- Pode ser executado novamente: políticas e triggers são recriados sem conflito.
+-- Bundle seguro e repetível para o Supabase SQL Editor.
 -- Não contém credenciais.
-
--- BASE Content Studio / Gerador de Conteúdos
--- Schema consolidado para execução no Supabase SQL Editor.
 
 
 
@@ -1585,15 +1581,19 @@ DROP POLICY IF EXISTS "aprovacoes_update"       ON aprovacoes_links;
 DROP POLICY IF EXISTS "aprovacoes_select" ON aprovacoes_links;
 CREATE POLICY "aprovacoes_select" ON aprovacoes_links
   FOR SELECT USING (
-    auth.uid() IS NULL                          -- acesso público (link de aprovação)
-    OR org_id IN (SELECT get_user_org_ids())    -- membro da org
+    auth.uid() IS NULL
+    OR empresa_id IN (
+      SELECT id FROM clientes WHERE org_id IN (SELECT get_user_org_ids())
+    )
   );
 
 -- INSERT: apenas membros autenticados da org
 DROP POLICY IF EXISTS "aprovacoes_insert" ON aprovacoes_links;
 CREATE POLICY "aprovacoes_insert" ON aprovacoes_links
   FOR INSERT WITH CHECK (
-    org_id IN (SELECT get_user_org_ids())
+    empresa_id IN (
+      SELECT id FROM clientes WHERE org_id IN (SELECT get_user_org_ids())
+    )
   );
 
 -- UPDATE:
@@ -1603,14 +1603,18 @@ DROP POLICY IF EXISTS "aprovacoes_update" ON aprovacoes_links;
 CREATE POLICY "aprovacoes_update" ON aprovacoes_links
   FOR UPDATE USING (
     auth.uid() IS NULL
-    OR org_id IN (SELECT get_user_org_ids())
+    OR empresa_id IN (
+      SELECT id FROM clientes WHERE org_id IN (SELECT get_user_org_ids())
+    )
   );
 
--- DELETE: apenas admins/gestores da org
+-- DELETE: apenas membros da própria organização
 DROP POLICY IF EXISTS "aprovacoes_delete" ON aprovacoes_links;
 CREATE POLICY "aprovacoes_delete" ON aprovacoes_links
   FOR DELETE USING (
-    is_org_manager(org_id)
+    empresa_id IN (
+      SELECT id FROM clientes WHERE org_id IN (SELECT get_user_org_ids())
+    )
   );
 
 
