@@ -1631,7 +1631,7 @@ CREATE INDEX IF NOT EXISTS idx_acervos_ativo ON acervos(ativo);
 CREATE INDEX IF NOT EXISTS idx_acervo_arquivos_acervo_id ON acervo_arquivos(acervo_id);
 
 -- ============================================
--- RLS Policies (CORRIGIDO - usa 'members' ao invés de 'organization_members')
+-- RLS Policies para membros da organização
 -- ============================================
 
 -- Habilitar RLS
